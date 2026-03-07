@@ -6,13 +6,12 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.preprocessing import StandardScaler
 from scipy.stats import pearsonr
 
-# 1. Load the dataset with window features
-print("Loading Windowed Feature Dataset...")
-df = pd.read_csv('skempi_window_features.csv')
+# 1. Load the dataset with enhanced window features
+print("Loading Enhanced Windowed Feature Dataset...")
+df = pd.read_csv('skempi_window_features_abs.csv')
 
-# 2. Dynamically identify features
-# We want: delta_vol, delta_hydro, loc, and all the L/R hydro columns
-base_features = ['delta_vol', 'delta_hydro', 'loc']
+# 2. Dynamically identify features (REMOVED DELTAS, KEPT ABSOLUTE VALUES)
+base_features = ['wt_vol', 'mut_vol', 'wt_hydro', 'mut_hydro', 'loc']
 window_features = [col for col in df.columns if col.startswith('L') or col.startswith('R')]
 all_features = base_features + window_features
 
@@ -24,19 +23,18 @@ print(f"Total features being used: {len(all_features)}")
 print(f"Features: {all_features}")
 
 # 3. Grouped Split (80% Train, 20% Test)
-# This ensures that if we see a mutation in 1CSE in training, 
-# we don't test on 1CSE. We test on totally different proteins.
 gss = GroupShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
 train_idx, test_idx = next(gss.split(X, y, groups=groups))
 
 X_train, X_test = X.iloc[train_idx], X.iloc[test_idx]
 y_train, y_test = y.iloc[train_idx], y.iloc[test_idx]
+
 scaler = StandardScaler()
 X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
 
 # 4. Train the Random Forest
-print("\nTraining Random Forest with Sequence Context...")
+print("\nTraining Random Forest with Absolute Context...")
 model = RandomForestRegressor(n_estimators=200, max_depth=15, random_state=42)
 model.fit(X_train, y_train)
 
@@ -49,7 +47,7 @@ r2 = r2_score(y_test, preds)
 p_corr, _ = pearsonr(y_test, preds)
 
 print("\n" + "="*30)
-print("WINDOWED MODEL RESULTS")
+print("ABSOLUTE WINDOWED MODEL RESULTS")
 print("="*30)
 print(f"MSE: {mse:.3f}")
 print(f"MAE: {mae:.3f} kcal/mol")
@@ -58,11 +56,10 @@ print(f"Pearson r: {p_corr:.3f}")
 print("="*30)
 
 # 6. Feature Importance Analysis
-# This is crucial for your paper to show IF the neighbors mattered
 importances = pd.DataFrame({
     'feature': all_features,
     'importance': model.feature_importances_
 }).sort_values(by='importance', ascending=False)
 
-print("\nTop 5 Most Important Features:")
-print(importances.head(5))
+print("\nTop 10 Most Important Features:")
+print(importances.head(10))
