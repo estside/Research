@@ -5,10 +5,13 @@ from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from scipy.stats import pearsonr
+from pathlib import Path
 
 # 1. Load the engineered dataset
 print("Loading ML-ready dataset...")
-df = pd.read_csv('skempi_ml_baseline_features.csv')
+BASE_DIR = Path(__file__).resolve().parents[1]
+DATASETS_DIR = BASE_DIR / "datasets"
+df = pd.read_csv(DATASETS_DIR / "skempi_ml_baseline_features.csv")
 
 # Define our inputs (X) and target (y)
 features = ['delta_hydro', 'delta_vol', 'delta_charge', 'iMutation_Location_encoded'] if 'Temperature' in df.columns else ['delta_hydro', 'delta_vol', 'delta_charge', 'iMutation_Location_encoded']

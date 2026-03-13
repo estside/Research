@@ -6,6 +6,7 @@ os.environ["GRPC_ENABLE_FORK_SUPPORT"] = "0"
 os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 os.environ["USE_TF"] = "0"
 os.environ["USE_TORCH"] = "1"
+from pathlib import Path
 
 import pandas as pd
 import torch
@@ -32,8 +33,10 @@ model = EsmModel.from_pretrained(model_name, token=hf_token)
 print("150M Model loaded successfully.")
 model.eval()
 # 2. Load your cleaned data
-df = pd.read_csv('skempi_cleaned_single_muts.csv')
-FASTA_DIR = "fasta_files"
+BASE_DIR = Path(__file__).resolve().parents[1]
+DATASETS_DIR = BASE_DIR / "datasets"
+FASTA_DIR = BASE_DIR / "fasta_files"
+df = pd.read_csv(DATASETS_DIR / "skempi_cleaned_single_muts.csv")
 
 embeddings_list = []
 
@@ -62,13 +65,13 @@ for idx, row in df.iterrows():
     pos = int(pos)
     
     # Load FASTA sequence
-    fasta_path = os.path.join(FASTA_DIR, f"{pdb_code}.fasta")
-    if not os.path.exists(fasta_path): 
+    fasta_path = FASTA_DIR / f"{pdb_code}.fasta"
+    if not fasta_path.exists(): 
         # print(f"Skipping {pdb_code}: FASTA not found")
         continue
     
     wt_sequence = ""
-    for record in SeqIO.parse(fasta_path, "fasta"):
+    for record in SeqIO.parse(str(fasta_path), "fasta"):
         desc = record.description.upper()
         # Robust chain matching (Auth or Index)
         if f"CHAIN {mutant_chain_id.upper()}" in desc or f"AUTH {mutant_chain_id.upper()}" in desc or f"|{mutant_chain_id.upper()}|" in desc:
@@ -126,5 +129,5 @@ for idx, row in df.iterrows():
 
 # 4. Save the new high-dimensional dataset
 embeddings_df = pd.DataFrame(embeddings_list)
-embeddings_df.to_csv('skempi_esm2_features.csv', index=False)
+embeddings_df.to_csv(DATASETS_DIR / "skempi_esm2_features.csv", index=False)
 print(f"Successfully extracted embeddings for {len(embeddings_df)} samples!")

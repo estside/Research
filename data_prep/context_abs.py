@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 from Bio import SeqIO
+from pathlib import Path
 
 # 1. Biophysical Properties
 hydrophobicity = {'A': 1.8, 'R': -4.5, 'N': -3.5, 'D': -3.5, 'C': 2.5, 'Q': -3.5, 'E': -3.5, 'G': -0.4, 'H': -3.2, 'I': 4.5, 'L': 3.8, 'K': -3.9, 'M': 1.9, 'F': 2.8, 'P': -1.6, 'S': -0.8, 'T': -0.7, 'W': -0.9, 'Y': -1.3, 'V': 4.2}
@@ -12,9 +13,11 @@ def get_prop(aa, prop_dict):
 
 # 2. Configuration
 WINDOW_SIZE = 3 
-FASTA_DIR = "fasta_files"
+BASE_DIR = Path(__file__).resolve().parents[1]
+DATASETS_DIR = BASE_DIR / "datasets"
+FASTA_DIR = BASE_DIR / "fasta_files"
 
-df = pd.read_csv('skempi_cleaned_single_muts.csv')
+df = pd.read_csv(DATASETS_DIR / "skempi_cleaned_single_muts.csv")
 new_rows = []
 
 print("Extracting Enhanced Window Features (Deltas + Absolute Values)...")
@@ -30,11 +33,11 @@ for idx, row in df.iterrows():
     wt_aa, pos, mut_aa = match.groups()
     pos = int(pos)
     
-    fasta_path = os.path.join(FASTA_DIR, f"{pdb_code}.fasta")
-    if not os.path.exists(fasta_path): continue
+    fasta_path = FASTA_DIR / f"{pdb_code}.fasta"
+    if not fasta_path.exists(): continue
     
     sequence = ""
-    for record in SeqIO.parse(fasta_path, "fasta"):
+    for record in SeqIO.parse(str(fasta_path), "fasta"):
         if f"Chain {mutant_chain_id}" in record.description or f"|{mutant_chain_id}|" in record.description:
             sequence = str(record.seq)
             break
@@ -81,5 +84,5 @@ for idx, row in df.iterrows():
     new_rows.append(feat)
 
 window_df = pd.DataFrame(new_rows)
-window_df.to_csv('skempi_window_features_abs.csv', index=False)
+window_df.to_csv(DATASETS_DIR / "skempi_window_features_abs.csv", index=False)
 print(f"Success! Created {len(window_df)} windowed samples with 13 features each.")

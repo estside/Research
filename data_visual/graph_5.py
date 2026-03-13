@@ -1,5 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parents[1]
+PLOTS_DIR = BASE_DIR / "plots"
+PLOTS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Data from Grouped 5-Fold CV Output
 labels = ['Mutation\nOnly', 'Window\nOnly', 'ESM-2\nOnly', 'Combined\nMLP', 'Ridge\n(Combined)', 'Random\nForest']
@@ -25,5 +30,6 @@ ax.yaxis.grid(True, linestyle='--', alpha=0.7)
 ax.set_axisbelow(True)
 
 fig.tight_layout()
-plt.savefig('5fold_graph.png', dpi=300, bbox_inches='tight')
-print("Successfully generated '5fold_graph.png'")
+output_path = PLOTS_DIR / "5fold_graph.png"
+plt.savefig(output_path, dpi=300, bbox_inches='tight')
+print(f"Successfully generated '{output_path}'")

@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from pathlib import Path
 
 from sklearn.model_selection import GroupKFold
 from sklearn.preprocessing import StandardScaler
@@ -16,10 +17,19 @@ from sklearn.ensemble import RandomForestRegressor
 # ==========================================================
 
 print("Loading 150M ESM-2 and Windowed datasets...")
-esm_df = pd.read_csv('skempi_esm2_features.csv')
-window_df = pd.read_csv('skempi_window_features.csv')
+BASE_DIR = Path(__file__).resolve().parents[1]
+DATASETS_DIR = BASE_DIR / "datasets"
+PLOTS_DIR = BASE_DIR / "plots"
+PLOTS_DIR.mkdir(parents=True, exist_ok=True)
+
+esm_df = pd.read_csv(DATASETS_DIR / "skempi_esm2_features.csv")
+window_df = pd.read_csv(DATASETS_DIR / "skempi_window_features.csv")
+
 
 merged_df = pd.merge(esm_df, window_df, on=['#Pdb', 'ddG'], how='inner')
+
+# Add this line to reveal your final dataset size!
+print(f"FINAL MERGED DATASET SIZE: {len(merged_df)} mutations")
 
 # ==========================================================
 # 2. FEATURE BREAKDOWN
@@ -185,5 +195,6 @@ plt.legend(loc='upper left')
 plt.grid(True, linestyle='--', alpha=0.5)
 plt.tight_layout()
 
-plt.savefig("scatter_grouped_combined.png", dpi=300, bbox_inches='tight')
-print("\nSaved high-resolution scatter plot: scatter_grouped_combined.png")
+output_path = PLOTS_DIR / "scatter_grouped_combined.png"
+plt.savefig(output_path, dpi=300, bbox_inches='tight')
+print(f"\nSaved high-resolution scatter plot: {output_path}")

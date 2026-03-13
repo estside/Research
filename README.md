@@ -1,15 +1,15 @@
-# Protein Mutation Stability Prediction (SKEMPI v2.0)
+# Protein Mutation Stability Prediction (SKEMPI v2)
 
 This research project aims to predict the change in binding free energy ($\Delta\Delta G$) upon single-point mutations in protein-protein complexes using machine learning. We explore a dual-resolution approach that merges biophysical feature engineering (Context Window Method) with high-dimensional transformer self-attention (ESM-2) to capture both local chemical disruptions and macro-structural folding constraints.
 
 ## 🚀 Overview
 
-The project uses the **SKEMPI v2.0** dataset, specifically focusing on single-point mutations. We've implemented a robust pipeline that extracts biophysical properties, incorporates neighboring residues' hydrophobicity, and leverages a 150-million parameter Protein Language Model. The final architecture relies on a **Combined Multi-Layer Perceptron (MLP)** evaluated through rigorous Grouped 5-Fold Cross-Validation.
+The project uses the **SKEMPI v2** dataset, specifically focusing on single-point mutations. We've implemented a robust pipeline that extracts biophysical properties, incorporates neighboring residues' hydrophobicity, and leverages a 150-million parameter Protein Language Model. The final architecture relies on a **Combined Multi-Layer Perceptron (MLP)** evaluated through rigorous Grouped 5-Fold Cross-Validation.
 
 ## 🛠️ Methodology
 
 ### 1. Data Preparation
-- **Dataset**: SKEMPI v2.1 (cleaned for single mutations).
+- **Dataset**: SKEMPI v2 (raw files under `datasets/`, cleaned for single mutations).
 - **Features**: 
   - `delta_vol`: Change in residue volume.
   - `delta_hydro`: Change in hydrophobicity.
@@ -79,31 +79,54 @@ To establish realistic real-world deployment metrics across unseen protein compl
    ```
 
 2. **Prepare Data**:
-   Ensure `skempi_cleaned_single_muts.csv` and the `fasta_files/` directory are present.
+   ```bash
+   python3 data_prep/skempi.py
+   python3 data_prep/download_fasta.py
+   ```
+   This produces `datasets/skempi_cleaned_single_muts.csv` and populates `fasta_files/`.
 
 3. **Generate Features**:
    ```bash
-   python3 context_window_method.py
-   python3 feature.py  # Extracts 150M ESM-2 embeddings
+   python3 data_prep/context_window_method.py
+   python3 data_prep/context_abs.py       # Optional: absolute + delta window features
+   python3 data_prep/ml_model_dataprep.py # Baseline ML features
+   python3 data_prep/feature.py           # Extracts 150M ESM-2 embeddings
    ```
 
 4. **Train and Evaluate**:
    ```bash
-   # Full combined model training with 5-fold CV
-   python3 train_mlp_combined.py
+   python3 models/train_mlp_combined.py
+   python3 models/train_mlp_model.py
+   python3 models/train_baseline_models.py
+   python3 models/train_baseline_temperature.py
+   python3 models/train_window_model.py
+   python3 models/advance.py
    ```
 
 5. **Generate Visualizations**:
    ```bash
-   python3 compare.py  # Generates graph.png
-   python3 graph_5.py  # Generates 5fold_graph.png
+   python3 data_visual/compare.py  # Generates plots/graph.png
+   python3 data_visual/graph_5.py  # Generates plots/5fold_graph.png
    ```
 
+**Note**: All scripts resolve paths relative to the repository root and read/write data in `datasets/`, `fasta_files/`, and `plots/`.
+
 ## 📂 Project Structure
-- `context_window_method.py`: Feature extraction using the ±3 sequence window.
-- `feature.py`: Script using ESM-2 (150M) to extract transformer embeddings.
-- `train_mlp_combined.py`: Core training script for the Combined MLP using Grouped 5-Fold CV.
-- `compare.py` & `graph_5.py`: Visualization scripts for bar charts and performance comparison.
+- `data_prep/`: Data cleaning, FASTA download, and feature engineering scripts.
+- `data_prep/skempi.py`: Cleans SKEMPI export and computes ΔΔG.
+- `data_prep/download_fasta.py`: Downloads PDB FASTA sequences into `fasta_files/`.
+- `data_prep/context_window_method.py`: ±3 window delta features.
+- `data_prep/context_abs.py`: Window features with absolute + delta values.
+- `data_prep/ml_model_dataprep.py`: Baseline ML feature table.
+- `data_prep/feature.py`: ESM-2 (150M) embeddings at mutation site.
+- `models/`: Training and analysis scripts.
+- `models/train_mlp_combined.py`: Combined MLP with grouped 5-fold CV.
+- `models/train_mlp_model.py`: Single split combined MLP.
+- `models/train_baseline_models.py`: Baseline linear + RF models.
+- `models/train_baseline_temperature.py`: Baseline models with temperature feature.
+- `models/train_window_model.py`: Window-only model with absolute features.
+- `models/advance.py`: Advanced analysis (feature importance, PCA).
+- `data_visual/compare.py` and `data_visual/graph_5.py`: Plot generators.
+- `datasets/`: Raw and generated CSV/XLSX files (e.g., `skempi.csv`, `skempi_cleaned_single_muts.csv`, `skempi_esm2_features.csv`, `skempi_window_features.csv`, `skempi_window_features_abs.csv`, `skempi_ml_baseline_features.csv`).
 - `fasta_files/`: PDB sequences in FASTA format.
-- `skempi_esm2_features.csv` & `skempi_window_features.csv`: Generated feature datasets.
-- `references.bib`: BibTeX citations for research papers.
+- `plots/`: Generated figures (e.g., `graph.png`, `5fold_graph.png`, `scatter_grouped_combined.png`).

@@ -5,11 +5,14 @@ from sklearn.neural_network import MLPRegressor
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.preprocessing import StandardScaler
 from scipy.stats import pearsonr
+from pathlib import Path
 
 # 1. Load both datasets
 print("Loading 150M ESM-2 and Windowed datasets...")
-esm_df = pd.read_csv('skempi_esm2_features.csv')
-window_df = pd.read_csv('skempi_window_features.csv')
+BASE_DIR = Path(__file__).resolve().parents[1]
+DATASETS_DIR = BASE_DIR / "datasets"
+esm_df = pd.read_csv(DATASETS_DIR / "skempi_esm2_features.csv")
+window_df = pd.read_csv(DATASETS_DIR / "skempi_window_features.csv")
 
 # 2. Merge them safely
 merged_df = pd.merge(esm_df, window_df, on=['#Pdb', 'ddG'], how='inner')

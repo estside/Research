@@ -5,10 +5,13 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.preprocessing import StandardScaler
 from scipy.stats import pearsonr
+from pathlib import Path
 
 # 1. Load the dataset with enhanced window features
 print("Loading Enhanced Windowed Feature Dataset...")
-df = pd.read_csv('skempi_window_features_abs.csv')
+BASE_DIR = Path(__file__).resolve().parents[1]
+DATASETS_DIR = BASE_DIR / "datasets"
+df = pd.read_csv(DATASETS_DIR / "skempi_window_features_abs.csv")
 
 # 2. Dynamically identify features (REMOVED DELTAS, KEPT ABSOLUTE VALUES)
 base_features = ['wt_vol', 'mut_vol', 'wt_hydro', 'mut_hydro', 'loc']

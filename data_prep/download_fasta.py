@@ -2,16 +2,19 @@ import pandas as pd
 import requests
 import os
 import time
+from pathlib import Path
 
 # 1. Create a neat folder to store all the downloaded sequences
-folder_name = "fasta_files"
-if not os.path.exists(folder_name):
-    os.makedirs(folder_name)
-    print(f"Created folder: {folder_name}/")
+BASE_DIR = Path(__file__).resolve().parents[1]
+DATASETS_DIR = BASE_DIR / "datasets"
+FASTA_DIR = BASE_DIR / "fasta_files"
+if not FASTA_DIR.exists():
+    FASTA_DIR.mkdir(parents=True)
+    print(f"Created folder: {FASTA_DIR}/")
 
 # 2. Read your newly cleaned dataset
 print("Reading skempi_cleaned_single_muts.csv...")
-df = pd.read_csv('skempi_cleaned_single_muts.csv')
+df = pd.read_csv(DATASETS_DIR / "skempi_cleaned_single_muts.csv")
 
 # 3. Extract just the 4-letter PDB IDs
 # The #Pdb column looks like "1CSE_E_I". We split by '_' and grab the first part.
@@ -23,10 +26,10 @@ print(f"Found {len(unique_pdbs)} unique PDB complexes to download.\n")
 
 # 4. Loop through and download each FASTA file
 for pdb_id in unique_pdbs:
-    file_path = os.path.join(folder_name, f"{pdb_id}.fasta")
+    file_path = FASTA_DIR / f"{pdb_id}.fasta"
     
     # Skip the download if the file is already there (great if your script gets interrupted!)
-    if os.path.exists(file_path):
+    if file_path.exists():
         print(f"[{pdb_id}] already exists. Skipping...")
         continue
         

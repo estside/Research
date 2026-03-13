@@ -1,8 +1,12 @@
 import pandas as pd
 import numpy as np
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parents[1]
+DATASETS_DIR = BASE_DIR / "datasets"
 
 # 1. Load the dataset WITHOUT skiprows
-df = pd.read_csv('skempi.csv')
+df = pd.read_csv(DATASETS_DIR / "skempi.csv")
 
 # 2. BULLETPROOFING: Strip invisible leading/trailing spaces from all column names
 df.columns = df.columns.str.strip()
@@ -42,7 +46,7 @@ final_df = df[existing_columns]
 # 8. Drop rows with missing ddG values
 final_df = final_df.dropna(subset=['ddG'])
 # Save the cleaned dataframe to a new CSV file
-output_filename = 'skempi_cleaned_single_muts.csv'
+output_filename = DATASETS_DIR / "skempi_cleaned_single_muts.csv"
 final_df.to_csv(output_filename, index=False)
 
 print(f"\nData successfully saved to {output_filename}")

@@ -1,4 +1,5 @@
 import pandas as pd
+from pathlib import Path
 
 # 1. Biophysical dictionaries
 hydrophobicity = {
@@ -24,7 +25,9 @@ charge = {
 
 # 2. Load the cleaned dataset
 print("Loading cleaned dataset...")
-df = pd.read_csv('skempi_cleaned_single_muts.csv')
+BASE_DIR = Path(__file__).resolve().parents[1]
+DATASETS_DIR = BASE_DIR / "datasets"
+df = pd.read_csv(DATASETS_DIR / "skempi_cleaned_single_muts.csv")
 print(f"Original rows loaded: {len(df)}")
 
 # 3. THE FIX: Relaxed Regex
@@ -75,7 +78,7 @@ else:
 ml_df = df[ml_columns].dropna()
 print(f"Final ML-ready rows: {len(ml_df)}")
 
-output_name = 'skempi_ml_baseline_features.csv'
+output_name = DATASETS_DIR / "skempi_ml_baseline_features.csv"
 ml_df.to_csv(output_name, index=False)
 
 print(f"\nSuccess! Engineered features saved to {output_name}")

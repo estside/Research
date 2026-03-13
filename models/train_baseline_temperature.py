@@ -6,10 +6,13 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from scipy.stats import pearsonr
 import matplotlib.pyplot as plt
+from pathlib import Path
 
 # 1. Load the engineered dataset
 print("Loading ML-ready dataset...")
-df = pd.read_csv('skempi_ml_baseline_features.csv')
+BASE_DIR = Path(__file__).resolve().parents[1]
+DATASETS_DIR = BASE_DIR / "datasets"
+df = pd.read_csv(DATASETS_DIR / "skempi_ml_baseline_features.csv")
 df["delta_temp"] = df["Temperature"] - 298
 # print(df["Temperature"].value_counts())
 

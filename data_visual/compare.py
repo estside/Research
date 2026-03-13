@@ -1,5 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parents[1]
+PLOTS_DIR = BASE_DIR / "plots"
+PLOTS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Data gathered from your previous runs
 labels = [
@@ -35,5 +40,6 @@ ax.legend(loc='upper right')
 ax.axhline(0, color='black', linewidth=0.8, linestyle='--') 
 
 fig.tight_layout()
-plt.savefig('graph.png')
-print("Successfully generated updated 'graph.png'")
+output_path = PLOTS_DIR / "graph.png"
+plt.savefig(output_path)
+print(f"Successfully generated updated '{output_path}'")
