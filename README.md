@@ -47,6 +47,14 @@ Our final input vector consists of **649 features** (640 ESM + 6 Window + 3 Base
 - **1-Fold Peak Split**: An initial 80/20 grouped split to establish the model's performance ceiling.
 - **Grouped 5-Fold CV**: Evaluates the model strictly on its ability to generalize thermodynamic rules to entirely unseen structural families.
 
+### 6. 3D GNN Extension (Siamese 1D-to-3D Fusion)
+We extended the pipeline with a **3D Graph Neural Network** that operates directly on protein structures:
+- **Graph Construction**: PDB structures are converted into graphs where nodes are Cα atoms and edges connect residues within **8 Å**.
+- **Siamese GAT Encoder**: Two GAT stacks process **WT** and **Mutant** graphs independently; the **structural delta** is the difference between pooled embeddings.
+- **ESM-2 Fusion**: 640D ESM-2 mutation embeddings are compressed to **50D** using PCA and injected as a **global delta feature**.
+- **Prediction Head**: The 3D delta embedding is concatenated with the 50D ESM-2 delta and passed through an MLP to predict ΔΔG.
+- **Inference UI**: A Gradio demo loads `checkpoint_best.pth` and runs end-to-end inference from a user-uploaded PDB file and mutation string.
+
 ## 📊 Results
 
 The following results compare baseline models against the **Combined MLP** (512, 256, 64 architecture).
@@ -75,7 +83,7 @@ To establish realistic real-world deployment metrics across unseen protein compl
 
 1. **Install Dependencies**:
    ```bash
-   pip install pandas numpy scikit-learn biopython scipy torch transformers matplotlib
+   pip install pandas numpy scikit-learn biopython scipy torch transformers matplotlib gradio torch-geometric
    ```
 
 2. **Prepare Data**:
@@ -109,6 +117,18 @@ To establish realistic real-world deployment metrics across unseen protein compl
    python3 data_visual/graph_5.py  # Generates plots/5fold_graph.png
    ```
 
+6. **3D GNN Pipeline (Train, Evaluate, Plot)**:
+   ```bash
+   python3 gnn/train_gnn.py
+   python3 gnn/evaluation.py
+   python3 gnn/plot.py
+   ```
+
+7. **GNN Demo App**:
+   ```bash
+   python3 gnn/app.py
+   ```
+
 **Note**: All scripts resolve paths relative to the repository root and read/write data in `datasets/`, `fasta_files/`, and `plots/`.
 
 ## 📂 Project Structure
@@ -130,3 +150,12 @@ To establish realistic real-world deployment metrics across unseen protein compl
 - `datasets/`: Raw and generated CSV/XLSX files (e.g., `skempi.csv`, `skempi_cleaned_single_muts.csv`, `skempi_esm2_features.csv`, `skempi_window_features.csv`, `skempi_window_features_abs.csv`, `skempi_ml_baseline_features.csv`).
 - `fasta_files/`: PDB sequences in FASTA format.
 - `plots/`: Generated figures (e.g., `graph.png`, `5fold_graph.png`, `scatter_grouped_combined.png`).
+- `gnn/`: 3D Graph Neural Network pipeline and demo UI.
+- `gnn/gnn.py`: 3D graph construction (Cα nodes + 8Å edges).
+- `gnn/graph.py`: Lightweight graph builder used by the Gradio app.
+- `gnn/dataset.py`: PyTorch Geometric dataset (PDB graphs + PCA-compressed ESM).
+- `gnn/fusion_network.py`: Siamese GAT + ESM-2 fusion model.
+- `gnn/train_gnn.py`: Training loop with checkpointing (`checkpoint_best.pth`).
+- `gnn/evaluation.py`: Test evaluation with MAE and Pearson r.
+- `gnn/plot.py`: Publication-style scatter plot generation.
+- `gnn/app.py`: Gradio web app for interactive ΔΔG prediction.
